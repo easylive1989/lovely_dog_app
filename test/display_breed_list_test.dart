@@ -40,10 +40,13 @@ main() {
 
     await givenShowBreedListPage(tester, mockClient, [mockNavigatorObserver]);
 
-    await whenTap(tester, find.byType(ListTile).first);
+    await whenTap(tester, find.text("affenpinscher"));
 
-    verify(() => mockNavigatorObserver.didPush(
-        captureAny(that: RouteMatcher("/dog_image")), captureAny()));
+    routeShouldBe(
+      mockNavigatorObserver,
+      routeName: "/dog_image",
+      arguments: "affenpinscher",
+    );
   });
 
   testWidgets('should show image when open dog image page', (tester) async {
@@ -58,11 +61,24 @@ main() {
 
       await givenShowMainApp(tester, mockClient);
 
-      await whenTap(tester, find.byType(ListTile).at(1));
+      await whenTap(tester, find.text("african"));
 
       expect(findNetworkImage(tester).url,
           "https://images.dog.ceo/breeds/bulldog-boston/n02096585_355.jpg");
     });
+  });
+}
+
+void routeShouldBe(
+  MockNavigatorObserver mockNavigatorObserver, {
+  required String routeName,
+  dynamic arguments,
+}) {
+  verify(() {
+    return mockNavigatorObserver.didPush(
+        captureAny(
+            that: RouteMatcher(routeName: routeName, arguments: arguments)),
+        any());
   });
 }
 
@@ -74,12 +90,12 @@ Future<void> whenTap(WidgetTester tester, Finder finder) async {
 Future<void> givenShowBreedListPage(
   WidgetTester tester,
   MockClient mockClient, [
-  List<NavigatorObserver> mockRouteObserver = const [],
+  List<NavigatorObserver> navigatorObservers = const [],
 ]) async {
   await tester.pumpWidget(
     MaterialApp(
       home: BreedListPage(dogApi: DogApi(client: mockClient)),
-      navigatorObservers: mockRouteObserver,
+      navigatorObservers: navigatorObservers,
       routes: {
         DogImagePage.routeName: (_) => const SizedBox(),
       },
@@ -125,8 +141,9 @@ void givenBreedList(MockClient mockClient, {required String breedList}) {
 
 class RouteMatcher extends Matcher {
   final String routeName;
+  final dynamic arguments;
 
-  RouteMatcher(this.routeName);
+  RouteMatcher({required this.routeName, this.arguments});
 
   @override
   Description describe(Description description) {
@@ -135,7 +152,8 @@ class RouteMatcher extends Matcher {
 
   @override
   bool matches(item, Map matchState) {
-    return item.settings.name == routeName;
+    return item.settings.name == routeName &&
+        item.settings.arguments == arguments;
   }
 }
 
