@@ -10,12 +10,12 @@ import 'package:network_image_mock/network_image_mock.dart';
 
 main() {
   late MockClient mockClient;
-  late MockRouteObserver mockRouteObserver;
+  late MockNavigatorObserver mockNavigatorObserver;
 
   setUp(() {
     registerFallbackValue(MockRoute());
     mockClient = MockClient();
-    mockRouteObserver = MockRouteObserver();
+    mockNavigatorObserver = MockNavigatorObserver();
   });
 
   testWidgets('display breed list', (WidgetTester tester) async {
@@ -38,11 +38,11 @@ main() {
       breedList: '{"affenpinscher": [], "african": [], "airedale": []}',
     );
 
-    await givenShowBreedListPage(tester, mockClient, [mockRouteObserver]);
+    await givenShowBreedListPage(tester, mockClient, [mockNavigatorObserver]);
 
     await whenTap(tester, find.byType(ListTile).first);
 
-    verify(() => mockRouteObserver.didPush(
+    verify(() => mockNavigatorObserver.didPush(
         captureAny(that: RouteMatcher("/dog_image")), captureAny()));
   });
 
@@ -139,7 +139,7 @@ class RouteMatcher extends Matcher {
   }
 }
 
-class MockRouteObserver extends Mock implements RouteObserver {}
+class MockNavigatorObserver extends Mock implements NavigatorObserver {}
 
 class MockClient extends Mock implements Client {}
 
